@@ -4,6 +4,7 @@ const Requests = require("../models/request");
 const Rooms = require("../models/room");
 const Filter = require("bad-words");
 const rateLimit = require("express-rate-limit");
+const axios = require("axios");
 const UserActivity = require("../models/activityLog");
 const filter = new Filter();
 
@@ -58,6 +59,24 @@ router.post("/api/request/place", rateLimitForRequestPOST, URCGuard, (req, res) 
                     }
 
                     if (result) {
+                        // send notification details
+                        axios.post(process.env.NS_URL, {
+                            code: 200,
+                            department: "housekeeping",
+                            notificationTitle: "Housekeeping",
+                            notificationBody: `New housekeeping request received from room: ${room.roomNumber}`,
+                            timeStamp: result.createdAt
+                        }, {
+                            headers: {
+                                "snstc": process.env.SNSTC
+                            }
+                        }).then((response) => {
+                            if (!response) console.log(`Error: Failed to send request notification to NS..`);
+                        }).catch((err) => {
+                            if (err) console.log(`Error: Error while sending request to notification server..\n${err}`);
+                        });
+
+                        // end response
                         res.json({
                             code: 200,
                             message: "Request sent successfully. Someone from housekeeping will get in touch soon."

@@ -4,6 +4,7 @@ const rateLimit = require("express-rate-limit");
 const Feedback = require("../models/feedback");
 const Room = require("../models/room");
 const Filter = require("bad-words");
+const axios = require("axios");
 const filter = new Filter();
 
 
@@ -45,6 +46,24 @@ router.post("/api/feedbacks/create", rateLimiterForPOST, URCGuard, (req, res) =>
                     feedback: filter.clean(req.body.feedback),
                     ratings: req.body.ratings,
                 }).then((success) => {
+                    // send notification details
+                    axios.post(process.env.NS_URL, {
+                        code: 200,
+                        department: "reception",
+                        notificationTitle: "Feedbacks",
+                        notificationBody: `New feedback received from room: ${room.roomNumber}`,
+                        timeStamp: success.createdAt
+                    }, {
+                        headers: {
+                            "snstc": process.env.SNSTC
+                        }
+                    }).then((result) => {
+                        if (!result) console.log(`Error: Failed to send feedback notification to NS..`);
+                    }).catch((err) => {
+                        if (err) console.log(`Error: Error while sending feedback to notification server..\n${err}`);
+                    });
+
+                    // ending response 
                     res.json({
                         code: 200,
                         message: "Thank you for submitting your feedback."

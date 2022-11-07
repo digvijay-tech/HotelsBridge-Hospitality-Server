@@ -3,6 +3,7 @@ const router = require("express").Router();
 const Orders = require("../models/order");
 const Rooms = require("../models/room");
 const rateLimit = require("express-rate-limit");
+const axios = require("axios");
 const UserActivity = require("../models/activityLog");
 
 // custom middlewares
@@ -54,6 +55,24 @@ router.post("/api/order/place", rateLimitForOrderPOST, URCGuard, (req, res) => {
                     }
 
                     if (result) {
+                        // send notification details
+                        axios.post(process.env.NS_URL, {
+                            code: 200,
+                            department: "roomservice",
+                            notificationTitle: "Room Service",
+                            notificationBody: `New order received from room: ${room.roomNumber}`,
+                            timeStamp: result.createdAt
+                        }, {
+                            headers: {
+                                "snstc": process.env.SNSTC
+                            }
+                        }).then((response) => {
+                            if (!response) console.log(`Error: Failed to send order notification to NS..`);
+                        }).catch((err) => {
+                            if (err) console.log(`Error: Error while sending order to notification server..\n${err}`);
+                        });
+
+                        // end response
                         res.json({
                             code: 200,
                             message: "Order placed successfully. Someone from room service will get in touch soon."
