@@ -52,9 +52,6 @@ app.use(requests);
 app.use(activityLogs);
 
 
-
-
-
 // connecting to DB & starting the server
 const port = process.env.PORT || 3000;
 const numOfCPUs = os.cpus().length;
