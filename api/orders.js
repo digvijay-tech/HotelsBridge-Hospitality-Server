@@ -45,7 +45,8 @@ router.post("/api/order/place", rateLimitForOrderPOST, URCGuard, (req, res) => {
                 Orders.create({
                     roomNumber: req.body.roomNumber,
                     items: req.body.items,
-                    paymentMethod: req.body.paymentMethod
+                    paymentMethod: req.body.paymentMethod,
+                    message: req.body.message
                 }).then((result) => {
                     if (!result) {
                         res.json({

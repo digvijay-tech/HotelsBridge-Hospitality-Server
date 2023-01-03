@@ -13,6 +13,14 @@ const orderSchema = new Schema({
         unique: false,
         required: true
     },
+    message: {
+        type: String,
+        trim: true,
+        minlength: 0,
+        maxlength: 360,
+        unique: false,
+        required: false
+    },
     items: [
         {
             itemId: {
