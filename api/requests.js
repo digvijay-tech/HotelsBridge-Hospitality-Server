@@ -106,6 +106,94 @@ router.post("/api/request/place", rateLimitForRequestPOST, URCGuard, (req, res) 
 });
 
 
+// type = POST
+// Operation: to receive housekeeping requests from the guest-interface
+// RateLimit: No Limit
+router.post("/api/request/place/message", verifyAccess, (req, res) => {
+    // check if the room is occupied
+    Rooms.findOne({ roomNumber: req.body.roomNumber })
+        .then((room) => {
+            if (!room) {
+                res.json({
+                    code: 403,
+                    message: "selected room doesn't exist."
+                });
+            } else {
+                if (room && room.isOccupied) {
+                    // place message for housekeeping
+                    Requests.create({
+                        roomNumber: req.body.roomNumber,
+                        message: req.body.message,
+                        items: [],
+                        updatedBy: {
+                            user: {
+                                id: req.body.decodedUser._id,
+                                firstName: req.body.decodedUser.firstName,
+                                lastName: req.body.decodedUser.lastName,
+                                email: req.body.decodedUser.email,
+                            }
+                        }
+                    }).then((result) => {
+                        // no result received (failure)
+                        if (!result) {
+                            res.json({
+                                code: 403,
+                                message: "Something went wrong try again later."
+                            });
+                        }
+
+                        // success
+                        if (result) {
+                            // send notification details
+                            axios.post(process.env.NS_URL, {
+                                code: 200,
+                                department: "housekeeping",
+                                notificationTitle: "Housekeeping",
+                                notificationBody: `New housekeeping request received from room: ${room.roomNumber}`,
+                                timeStamp: result.createdAt
+                            }, {
+                                headers: {
+                                    "snstc": process.env.SNSTC
+                                }
+                            }).then((response) => {
+                                if (!response) console.log(`Error: Failed to send request notification to NS..`);
+                            }).catch((err) => {
+                                if (err) console.log(`Error: Error while sending request to notification server..\n${err}`);
+                            });
+
+                            // end response
+                            res.json({
+                                code: 200,
+                                message: "sent successfully"
+                            });
+                        }
+                    }).catch((err) => {
+                        console.log(`Error: Failed to place message for housekeeping..\n${err}`);
+                        res.json({
+                            code: 403,
+                            message: "Unable to process your request, please try later."
+                        });
+                    });
+                }
+
+                if (room.isOccupied === false) {
+                    res.json({
+                        code: 200,
+                        message: `Room ${room.roomNumber} is vacant`
+                    });
+                }
+            }
+        })
+        .catch((err) => {
+            console.log(`Error: Failed to find room..\n${err}`);
+            res.json({
+                code: 403,
+                message: "Unable to process your request, try again later."
+            });
+        });
+});
+
+
 
 // type = GET
 // Operation: for sending housekeeping requests to staff-interface

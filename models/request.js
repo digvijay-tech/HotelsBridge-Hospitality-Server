@@ -17,7 +17,7 @@ const requestSchema = new Schema({
         type: String,
         trim: true,
         minlength: 0,
-        maxlength: 360,
+        maxlength: 600,
         unique: false,
         required: false
     },
