@@ -43,8 +43,10 @@ router.post("/api/feedbacks/create", rateLimiterForPOST, URCGuard, (req, res) =>
                 Feedback.create({
                     roomNumber: req.body.roomNumber,
                     fullName: filter.clean(req.body.fullName),
-                    feedback: filter.clean(req.body.feedback),
-                    ratings: req.body.ratings,
+                    review: req.body.review,
+                    housekeepingRating: req.body.housekeepingRating,
+                    roomServiceRating: req.body.roomServiceRating,
+                    frontOfficeRating: req.body.frontOfficeRating
                 }).then((success) => {
                     // send notification details
                     axios.post(process.env.NS_URL, {

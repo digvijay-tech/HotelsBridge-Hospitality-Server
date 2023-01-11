@@ -21,19 +21,41 @@ const feedbackSchema = new Schema({
         unique: false,
         required: true
     },
-    feedback: {
+    review: {
         type: String,
         trim: true,
-        minlength: 5,
+        minlength: 0,
         maxlength: 600,
-        required: true
+        unique: false,
+        required: false,
+        default: ""
     },
-    ratings: {
+    housekeepingRating: {
         type: Number,
         trim: true,
-        min: 1,
-        max: 5,
-        required: true
+        min: 0,
+        max: 10,
+        required: false,
+        unique: false,
+        default: 0
+    },
+    roomServiceRating: {
+        type: Number,
+        trim: true,
+        min: 0,
+        max: 10,
+        required: false,
+        unique: false,
+        default: 0
+    },
+    frontOfficeRating: {
+        type: Number,
+        trim: true,
+        min: 0,
+        max: 10,
+        required: false,
+        unique: false,
+        default: 0
     }
 }, { timestamps: true });
 
